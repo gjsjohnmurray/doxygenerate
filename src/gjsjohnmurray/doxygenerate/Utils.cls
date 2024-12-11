@@ -1,6 +1,44 @@
 Class gjsjohnmurray.doxygenerate.Utils Extends %RegisteredObject
 {
 
+/// Set up (called from Activate phase of package installation)
+ClassMethod Setup() As %Status
+{
+    write !,"Starting setup...",!
+    zn "%SYS"
+    // Called directly because it has to be done in %SYS else a bug in the method means it doesn't find the class members
+    set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
+    if ('sc) write "Error building metadata for IRISSYS",!,$system.Status.GetErrorText(sc),! return sc
+    write "Built metadata for IRISSYS",!
+
+    zn "DOXYGEN"
+
+    // Create the IRISLIB documentation (including tagfile)
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata("^IRISLIB")
+    if ('sc) write "Error building metadata for IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
+    write "Built metadata for IRISLIB",!
+
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("^IRISLIB")
+    if ('sc) write "Error generating files for database IRISLIB",$system.Status.GetErrorText(sc),! return sc
+    write "Generated files for database IRISLIB",!
+
+    // Create our own documentation as a demo
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata()
+    if ('sc) write "Error building metadata for "_$namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write "Built metadata for "_$namespace,!
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles()
+    if ('sc) write "Error generating files for "_$namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write "Generated files for "_$namespace,!
+
+    // Optional build of the %SYS documentation
+    // Metadata for %SYS was built earlier with a direct call from %SYS
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("%SYS")
+    if ('sc) write "Error generating files for %SYS",!,$system.Status.GetErrorText(sc),! return sc
+    write "Generated files for %SYS",!
+
+    Return sc
+}
+
 /// Build the metadata files for this database
 ClassMethod BuildMetadata(namespace As %String = {$namespace}) As %Status
 {
@@ -40,13 +78,14 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
         for {
             if (databaseName="IRISLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = ../../../../csp/doxygen/_"_databaseName) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = ../../../../csp/doxygen/__"_databaseName) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_databaseName_".tag") quit:sc'=$$$OK
             } else {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = ../../../../csp/doxygen/"_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("TAGFILES       = ../../IRISLIB/doxygen/IRISLIB.tag=../_IRISLIB") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = ../../../../csp/doxygen/"_$s($e(namespace)'="%":namespace,1:"_"_$e(namespace,2,*))) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("TAGFILES       = ../../IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
             }
+            set sc=oFile.WriteLine("HTML_FILE_EXTENSION    = .htm") quit:sc'=$$$OK
             set sc=oFile.WriteLine("OPTIMIZE_OUTPUT_JAVA   = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_PRIVATE        = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_STATIC         = YES") quit:sc'=$$$OK
