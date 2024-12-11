@@ -12,11 +12,11 @@
     set prop("AutheEnabled")=48
     do ##class(Security.Services).Modify("%Service_CallIn",.prop)
 
-    // create IRISAPP namespace
+    // create DOXYGEN namespace
     do $SYSTEM.OBJ.Load("/home/irisowner/dev/App.Installer.cls", "ck")
     set sc = ##class(App.Installer).setup()
 
-    zn "DOXYGENERATE"
+    zn "DOXYGEN"
 
     // Create /_vscode web app to support per-folder settings
     zpm "install vscode-per-namespace-settings"
@@ -26,54 +26,39 @@
     // Removed 2024-12-11 because role of intersystems-community.testingmanager has been usurped by intersystems-community.vscode-objectscript
     //set ^UnitTestRoot="/usr/irissys/.vscode/IRISAPP/UnitTestRoot"
 
-    // Load the project's package
-    zpm "load /home/irisowner/dev/ -v":1:1
+    // Load the project's package (terminate on error but do not halt on successful completion)
+    zpm "load /home/irisowner/dev/ -v":1:0
 
     zn "%SYS"
+    write !!,"DataDirectory=",$SYSTEM.Util.DataDirectory(),!
     // Called directly because it has to be done in %SYS else a bug in the method means it doesn't find the class members
     set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
-    if (sc) {
-        write "Error building metadata for IRISSYS",!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
-    zn "DOXYGENERATE"
+    if ('sc) write "Error building metadata for IRISSYS",!,$system.Status.GetErrorText(sc),! halt
+    write "Built metadata for IRISSYS",!
+
+    zn "DOXYGEN"
 
     // Create the IRISLIB documentation (including tagfile)
     set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata("^IRISLIB")
-    if (sc) {
-        write "Error building metadata for IRISLIB",!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
+    if ('sc) write "Error building metadata for IRISLIB",!,$system.Status.GetErrorText(sc),! halt
+    write "Built metadata for IRISLIB",!
+
     set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("^IRISLIB")
-    if (sc) {
-        write "Error generating files for database IRISLIB",!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
+    if ('sc) write "Error generating files for database IRISLIB",$system.Status.GetErrorText(sc),! halt
+    write "Generated files for database IRISLIB",!
 
     // Create our own documentation as a demo
     set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata()
-    if (sc) {
-        write "Error building metadata for "_$namespace,!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
+    if ('sc) write "Error building metadata for "_$namespace,!,$system.Status.GetErrorText(sc),! halt
+    write "Built metadata for "_$namespace,!
     set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles()
-    if (sc) {
-        write "Error generating files for "_$namespace,!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
+    if ('sc) write "Error generating files for "_$namespace,!,$system.Status.GetErrorText(sc),! halt
+    write "Generated files for "_$namespace,!
 
     // Optional build of the %SYS documentation
     // Metadata for %SYS was built earlier with a direct call from %SYS
     set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("%SYS")
-    if (sc) {
-        write "Error generating files for %SYS",!
-        write $system.Status.GetErrorText(sc),!
-        halt
-    }
+    if ('sc) write "Error generating files for %SYS",!,$system.Status.GetErrorText(sc),! halt
+    write "Generated files for %SYS",!
     
     halt

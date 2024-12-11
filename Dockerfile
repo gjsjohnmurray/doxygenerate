@@ -8,14 +8,9 @@ FROM $IMAGE AS builder
 
 WORKDIR /home/irisowner/dev
 
-## install doxygen
-USER root
-RUN apt update && apt-get -y install doxygen
-USER ${ISC_PACKAGE_MGRUSER}
-
 ARG TESTS=0
 ARG MODULE="doxygenerate"
-ARG NAMESPACE="DOXYGENERATE"
+ARG NAMESPACE="DOXYGEN"
 
 ## Embedded Python environment
 ENV IRISUSERNAME "_SYSTEM"
@@ -33,19 +28,25 @@ RUN --mount=type=bind,src=.,dst=. \
     ([ $TESTS -eq 0 ] || iris session iris -U $NAMESPACE "##class(%ZPM.PackageManager).Shell(\"test $MODULE -v -only\",1,1)") && \
     iris stop IRIS quietly
 
-RUN cd /usr/irissys/dev/atelier/IRISLIB/doxygen && \
-    doxygen Doxyfile
-
-RUN cd /usr/irissys/dev/atelier/DOXYGENERATE/doxygen && \
-    doxygen Doxyfile
-
-RUN cd /usr/irissys/dev/atelier/IRISSYS/doxygen && \
-    doxygen Doxyfile
-
 FROM $IMAGE AS final
 ADD --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} https://github.com/grongierisc/iris-docker-multi-stage-script/releases/latest/download/copy-data.py /home/irisowner/dev/copy-data.py
 #ADD https://github.com/grongierisc/iris-docker-multi-stage-script/releases/latest/download/copy-data.py /home/irisowner/dev/copy-data.py
 
 RUN --mount=type=bind,source=/,target=/builder/root,from=builder \
     cp -f /builder/root/usr/irissys/iris.cpf /usr/irissys/iris.cpf && \
+    cp -f -r /builder/root/usr/irissys/dev/atelier/* /usr/irissys/dev/atelier && \
     python3 /home/irisowner/dev/copy-data.py -c /usr/irissys/iris.cpf -d /builder/root/
+
+## install doxygen and graphviz
+USER root
+RUN apt update && apt-get -y install doxygen graphviz
+USER ${ISC_PACKAGE_MGRUSER}
+
+RUN cd /usr/irissys/dev/atelier/IRISLIB/doxygen && \
+    doxygen Doxyfile > /dev/null 2>&1
+
+RUN cd /usr/irissys/dev/atelier/DOXYGEN-CODE/doxygen && \
+    doxygen Doxyfile > /dev/null 2>&1
+
+RUN cd /usr/irissys/dev/atelier/IRISSYS/doxygen && \
+    doxygen Doxyfile > /dev/null 2>&1
