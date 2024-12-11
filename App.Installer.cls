@@ -1,19 +1,16 @@
-/// an example of Installer class just to create a new clear namespace and database IRISAPP
+/// Create DOXYGENERATE namespace + database and webapp
 Class App.Installer
 {
 
 XData setup
 {
-<Manifest>
-  <Default Name="Namespace" Value="IRISAPP"/>
-  <Default Name="database" Value="irisapp"/>
-  
-  <Namespace Name="${Namespace}" Code="${Namespace}-CODE" Data="${Namespace}-DATA" Create="yes" Ensemble="1">
+<Manifest> 
+  <Namespace Name="DOXYGENERATE" Code="DOXYGENERATE-CODE" Data="DOXYGENERATE-DATA" Create="yes" Ensemble="0">
     <Configuration>
-      <Database Name="${Namespace}-DATA" Dir="${mgrdir}${database}/data" Create="yes" Resource="%DB_${Namespace}-DATA"/>
-      <Database Name="${Namespace}-CODE" Dir="${mgrdir}${database}/code" Create="yes" Resource="%DB_${Namespace}-CODE"/>
+      <Database Name="DOXYGENERATE-DATA" Dir="${mgrdir}doxygenerate/data" Create="yes" Resource="%DB_DOXYGENERATE-DATA"/>
+      <Database Name="DOXYGENERATE-CODE" Dir="${mgrdir}doxygenerate/code" Create="yes" Resource="%DB_DOXYGENERATE-CODE"/>
     </Configuration>
-     <CSPApplication Url="/csp/${app}" Directory="${cspdir}${app}"  ServeFiles="1" Recurse="1" MatchRoles=":%DB_${Namespace}" AuthenticationMethods="32" 
+    <CSPApplication Url="/csp/doxygenerate" Directory="${cspdir}doxygenerate"  ServeFiles="1" Recurse="1" AuthenticationMethods="32" 
     />
   </Namespace>
 </Manifest>

@@ -1,3 +1,4 @@
+
     zn "%SYS"
 
     // Unexpire passwords and set up passwordless mode to simplify dev use.
@@ -15,13 +16,64 @@
     do $SYSTEM.OBJ.Load("/home/irisowner/dev/App.Installer.cls", "ck")
     set sc = ##class(App.Installer).setup()
 
-    zn "IRISAPP"
+    zn "DOXYGENERATE"
 
-    // Create /_vscode web app to support intersystems-community.testingmanager VS Code extension
+    // Create /_vscode web app to support per-folder settings
     zpm "install vscode-per-namespace-settings"
+    
+    //
+    // Configure %UnitTest in IRISAPP to suit the intersystems-community.testingmanager VS Code extension
+    // Removed 2024-12-11 because role of intersystems-community.testingmanager has been usurped by intersystems-community.vscode-objectscript
+    //set ^UnitTestRoot="/usr/irissys/.vscode/IRISAPP/UnitTestRoot"
 
-    // Configure %UnitTest in IRISAPP to suit the VS Code extension
-    set ^UnitTestRoot="/usr/irissys/.vscode/IRISAPP/UnitTestRoot"
-
+    // Load the project's package
     zpm "load /home/irisowner/dev/ -v":1:1
+
+    zn "%SYS"
+    // Called directly because it has to be done in %SYS else a bug in the method means it doesn't find the class members
+    set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
+    if (sc) {
+        write "Error building metadata for IRISSYS",!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+    zn "DOXYGENERATE"
+
+    // Create the IRISLIB documentation (including tagfile)
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata("^IRISLIB")
+    if (sc) {
+        write "Error building metadata for IRISLIB",!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("^IRISLIB")
+    if (sc) {
+        write "Error generating files for database IRISLIB",!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+
+    // Create our own documentation as a demo
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).BuildMetadata()
+    if (sc) {
+        write "Error building metadata for "_$namespace,!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles()
+    if (sc) {
+        write "Error generating files for "_$namespace,!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+
+    // Optional build of the %SYS documentation
+    // Metadata for %SYS was built earlier with a direct call from %SYS
+    set sc=##class(gjsjohnmurray.doxygenerate.Utils).GenerateFiles("%SYS")
+    if (sc) {
+        write "Error generating files for %SYS",!
+        write $system.Status.GetErrorText(sc),!
+        halt
+    }
+    
     halt

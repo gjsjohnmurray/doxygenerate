@@ -14,8 +14,8 @@ RUN apt update && apt-get -y install doxygen
 USER ${ISC_PACKAGE_MGRUSER}
 
 ARG TESTS=0
-ARG MODULE="dc-sample"
-ARG NAMESPACE="IRISAPP"
+ARG MODULE="doxygenerate"
+ARG NAMESPACE="DOXYGENERATE"
 
 ## Embedded Python environment
 ENV IRISUSERNAME "_SYSTEM"
@@ -33,6 +33,14 @@ RUN --mount=type=bind,src=.,dst=. \
     ([ $TESTS -eq 0 ] || iris session iris -U $NAMESPACE "##class(%ZPM.PackageManager).Shell(\"test $MODULE -v -only\",1,1)") && \
     iris stop IRIS quietly
 
+RUN cd /usr/irissys/dev/atelier/IRISLIB/doxygen && \
+    doxygen Doxyfile
+
+RUN cd /usr/irissys/dev/atelier/DOXYGENERATE/doxygen && \
+    doxygen Doxyfile
+
+RUN cd /usr/irissys/dev/atelier/IRISSYS/doxygen && \
+    doxygen Doxyfile
 
 FROM $IMAGE AS final
 ADD --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} https://github.com/grongierisc/iris-docker-multi-stage-script/releases/latest/download/copy-data.py /home/irisowner/dev/copy-data.py
