@@ -9,6 +9,16 @@
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="gjsjohnmurray.doxygenerate.PKG"/>
       <UnitTest Name="/tests" Package="gjsjohnmurray.doxygenerate.unittests" Phase="test"/>
+      <CSPApplication
+        Url="/csp/doxygen"
+        SourcePath="/src/csp"
+        DeployPath="webapp"
+        Recurse="1"
+        ServeFiles="1"
+        CookiePath="/csp/doxygen"
+        UseCookies="2"
+        UnauthenticatedEnabled="1"
+      />
       <Invoke Phase="Activate" Class="gjsjohnmurray.doxygenerate.Utils" Method="Setup" CheckStatus="true"/>
     </Module>
   </Document>

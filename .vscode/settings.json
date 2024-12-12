@@ -1,24 +1,24 @@
 {
-    "files.associations": {
-
-        "Dockerfile*": "dockerfile",
-        "iris.script": "objectscript"
-      },
-    "objectscript.conn" :{
-      "active": false,
-      "ns": "DOXYGEN",
-      "username": "_SYSTEM",
-      "password": "SYS",
-      "docker-compose": {
-        "service": "iris",
-        "internalPort": 52773
-      },
-      "links": {
-        "UnitTest Portal": "${serverUrl}/csp/sys/%25UnitTest.Portal.Home.cls?$NAMESPACE=IRISAPP"
-      }
+  // MARK: files
+  "files.associations": {
+    "Dockerfile*": "dockerfile",
+    "iris.script": "objectscript"
+  },
+  // MARK: objectscript
+  "objectscript.conn": {
+    "active": true,
+    "ns": "DOXYGEN",
+    "username": "_SYSTEM",
+    "password": "SYS",
+    "docker-compose": {
+      "service": "iris",
+      "internalPort": 52773
     },
-    "objectscript.unitTest.relativeTestRoots": [
-      "tests"
-    ],
-
+    "links": {
+      "Browse Generated Documentation": "${serverUrl}/csp/doxygen/Home.csp"
+    }
+  },
+  "objectscript.unitTest.relativeTestRoots": [
+    "tests"
+  ]
 }

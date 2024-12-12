@@ -1,0 +1,18 @@
+<head>
+    <title>Doxygenerate Index</title>
+</head>
+<body>
+    <p>
+        Namespaces: (TODO - make this dynamic)
+    </p>
+    <ul>
+        <li><a href="DOXYGEN/index.html">DOXYGEN namespace</a></li>
+    </ul>
+    <p>
+        Libraries:
+    </p>
+    <ul>
+        <li><a href="_SYS/index.html">%SYS namespace</a></li>
+        <li><a href="__IRISLIB/index.html">IRISLIB database</a></li>
+    </ul>
+</body>

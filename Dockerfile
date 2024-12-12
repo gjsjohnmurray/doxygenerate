@@ -12,10 +12,10 @@ ARG TESTS=0
 ARG MODULE="doxygenerate"
 ARG NAMESPACE="DOXYGEN"
 
-ENV IRISUSERNAME "_SYSTEM"
-ENV IRISPASSWORD "SYS"
-ENV IRISNAMESPACE $NAMESPACE
-ENV PATH "/usr/irissys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/irisowner/bin"
+ENV IRISUSERNAME="_SYSTEM"
+ENV IRISPASSWORD="SYS"
+ENV IRISNAMESPACE=$NAMESPACE
+ENV PATH="/usr/irissys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/irisowner/bin"
 
 ## install doxygen and graphviz
 USER root
@@ -28,12 +28,3 @@ RUN --mount=type=bind,src=.,dst=. \
 	iris session IRIS < iris.script && \
     ([ $TESTS -eq 0 ] || iris session iris -U $NAMESPACE "##class(%ZPM.PackageManager).Shell(\"test $MODULE -v -only\",1,1)") && \
     iris stop IRIS quietly
-
-RUN cd /usr/irissys/dev/atelier/IRISLIB/doxygen && \
-    doxygen Doxyfile > /dev/null 2>&1
-
-RUN cd /usr/irissys/dev/atelier/DOXYGEN-CODE/doxygen && \
-    doxygen Doxyfile > /dev/null 2>&1
-
-RUN cd /usr/irissys/dev/atelier/IRISSYS/doxygen && \
-    doxygen Doxyfile > /dev/null 2>&1
