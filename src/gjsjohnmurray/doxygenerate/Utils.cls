@@ -5,52 +5,60 @@ Class gjsjohnmurray.doxygenerate.Utils Extends %RegisteredObject
 ClassMethod Setup() As %Status
 {
     write !,"Starting setup...",!
-    zn "%SYS"
-    // Called directly because it has to be done in %SYS else a bug in the method means it doesn't find the class members
-    set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
-    if ('sc) write "Error building metadata for IRISSYS",!,$system.Status.GetErrorText(sc),! return sc
-    write "Built metadata for IRISSYS",!
-
-    zn "DOXYGEN"
 
     // Create the IRISLIB documentation (including tagfile)
+    write "Building metadata for IRISLIB...",!
     set sc=..BuildMetadata("^IRISLIB")
     if ('sc) write "Error building metadata for IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
-    write "Built metadata for IRISLIB",!
-
+    write " done",!
+    write "Generating files for database IRISLIB...",!
     set sc=..GenerateFiles("^IRISLIB")
     if ('sc) write "Error generating files for database IRISLIB",$system.Status.GetErrorText(sc),! return sc
-    write "Generated files for database IRISLIB",!
-
-    // Create our own documentation as a demo
-    set sc=..BuildMetadata()
-    if ('sc) write "Error building metadata for "_$namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write "Built metadata for "_$namespace,!
-    set sc=..GenerateFiles()
-    if ('sc) write "Error generating files for "_$namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write "Generated files for "_$namespace,!
-
-    // Optional build of the %SYS documentation
-    // Metadata for %SYS was built earlier with a direct call from %SYS
-    set sc=..GenerateFiles("%SYS")
-    if ('sc) write "Error generating files for %SYS",!,$system.Status.GetErrorText(sc),! return sc
-    write "Generated files for %SYS",!
-
+    write " done",!
     write "Building doc for database IRISLIB...",!
     set sc=..RunDoxygen("^IRISLIB")
     if ('sc) write "Error running doxygen for database IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
     write " done",!
 
+    // Create the IRISSYS documentation (including tagfile)
+    set nsWas=$namespace
+    zn "%SYS"
+    // This metadata build has to be called directly in %SYS else a bug in the method means it doesn't find the class members
+    write "Building metadata for IRISSYS...",!
+    set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
+    if ('sc) write "Error building metadata for IRISSYS",!,$system.Status.GetErrorText(sc),! zn nsWas return sc
+    write " done",!
+    zn nsWas
+    write "Generating files for %SYS...",!
+    set sc=..GenerateFiles("%SYS")
+    if ('sc) write "Error generating files for %SYS",!,$system.Status.GetErrorText(sc),! return sc
+    write " done",!
     write "Building doc for %SYS...",!
     set sc=..RunDoxygen("%SYS")
     if ('sc) write "Error running doxygen for %SYS",!,$system.Status.GetErrorText(sc),! return sc
     write " done",!
 
-    write "Building doc for "_$namespace,"...",!
-    set sc=..RunDoxygen()
-    if ('sc) write "Error running doxygen for "_$namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
+    // Create our own documentation as a demo
+    set sc=..DocumentOneNamespace($namespace)
+    return sc
+}
 
+/// Do all the documentation steps for a namespace
+ClassMethod DocumentOneNamespace(namespace As %String) As %Status
+{
+
+    write "Building metadata for "_namespace_"...",!
+    set sc=..BuildMetadata(namespace)
+    if ('sc) write "Error building metadata for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write " done",!
+    write "Generating files for "_namespace_"...",!
+    set sc=..GenerateFiles(namespace)
+    if ('sc) write "Error generating files for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write " done",!
+    write "Building doc for "_namespace,"...",!
+    set sc=..RunDoxygen(namespace)
+    if ('sc) write "Error running doxygen for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write " done",!
     Return sc
 }
 
@@ -94,16 +102,16 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             if (databaseName="IRISLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/__"_databaseName) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_databaseName_".tag") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("GENERATE_TAGFILE       = ../../../dev/atelier/"_databaseName_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK
             } elseif (databaseName="IRISSYS") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = %SYS") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/_SYS") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("GENERATE_TAGFILE       = IRISSYS.tag") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("TAGFILES       = ../../IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("GENERATE_TAGFILE       = ../../../dev/atelier/IRISSYS/doxygen/IRISSYS.tag") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("TAGFILES       = ../../../dev/atelier/IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
             } else {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_namespace) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/"_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("TAGFILES       = ../../IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB\n  ../../IRISSYS/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("TAGFILES       = ../../../dev/atelier/IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB ../../../dev/atelier/IRISSYS/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
             }
             set sc=oFile.WriteLine("OPTIMIZE_OUTPUT_JAVA   = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_PRIVATE        = YES") quit:sc'=$$$OK
@@ -503,8 +511,9 @@ ClassMethod RunDoxygen(namespace As %String = {$namespace}) As %Status
     Set databaseName=..DatabaseName(namespace)
     Set inDir=..MetadataPath(namespace)
     Set doxyDir=##class(%File).SubDirectoryName(inDir,"doxygen")
+    Set nullDevice=##class(%Library.Device).GetNullDevice()
 
-    Set status=$zf(-100,"/SHELL","doxygen",doxyDir_"/Doxyfile",">/dev/null","2>&1")
+    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","doxygen",doxyDir_"/Doxyfile")
 
     if (status'=0) {
         Set sc=$system.Status.Error(5001,"Failed to run doxygen on "_doxyDir_"/Doxyfile - $zf(-100) returned "_status)
