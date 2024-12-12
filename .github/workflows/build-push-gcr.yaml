@@ -3,7 +3,6 @@ name: Cloud Run Deploy
 on:
   push:
     branches:
-    - master
     - main
   workflow_dispatch:
 
@@ -13,7 +12,7 @@ jobs:
     with:
       # Replace the name: parameter below to have your application deployed at
       # https://project-name.demo.community.intersystems.com/
-      name: project-name
+      name: doxygenerate
     secrets:
       # Do not forget to add Secret in GitHub Repoository Settings with name SERVICE_ACCOUNT_KEY
       SERVICE_ACCOUNT_KEY: ${{ secrets.SERVICE_ACCOUNT_KEY }}

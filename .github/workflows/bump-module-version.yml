@@ -3,7 +3,6 @@ name: versionbump
 on:
   push:
     branches:
-      - master
       - main
   release:
     types:
