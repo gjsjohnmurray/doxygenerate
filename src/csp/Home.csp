@@ -39,5 +39,6 @@
     <ul>
         <li><a href="_SYS/index.html">%SYS namespace</a></li>
         <li><a href="__IRISLIB/index.html">IRISLIB database</a></li>
+        <li><a href="__ENSLIB/index.html">ENSLIB database</a></li>
     </ul>
 </body>

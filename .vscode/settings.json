@@ -6,7 +6,7 @@
   },
   // MARK: objectscript
   "objectscript.conn": {
-    "active": false,
+    "active": true,
     "ns": "USER",
     "username": "_SYSTEM",
     "password": "SYS",
