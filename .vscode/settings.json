@@ -7,7 +7,7 @@
   // MARK: objectscript
   "objectscript.conn": {
     "active": true,
-    "ns": "DOXYGEN",
+    "ns": "USER",
     "username": "_SYSTEM",
     "password": "SYS",
     "docker-compose": {

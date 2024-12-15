@@ -1,20 +1,15 @@
-
-    zn "%SYS"
-
-    // Unexpire passwords and set up passwordless mode to simplify dev use.
-    // ** Comment out these two line for Production use **
-    do ##class(Security.Users).UnExpireUserPasswords("*")
-    zpm "install passwordless"
-
-    // create DOXYGEN namespace
-    do $SYSTEM.OBJ.Load("/home/irisowner/dev/App.Installer.cls", "ck")
-    set sc = ##class(App.Installer).setup()
-
-    zn "DOXYGEN"
+    zn "USER"
 
     // Create /_vscode web app to support per-folder settings
     zpm "install vscode-per-namespace-settings"
     
     // Load the project's package
     zpm "load /home/irisowner/dev/ -v":1:0
+
+    // Unexpire passwords and set up passwordless mode to simplify dev use (including for webapps created by packages installed above).
+    // ** Comment out these lines for Production use **
+    zn "%SYS"
+    do ##class(Security.Users).UnExpireUserPasswords("*")
+    zpm "install passwordless"
+    
     halt

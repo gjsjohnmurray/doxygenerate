@@ -20,23 +20,9 @@ ClassMethod Setup() As %Status
     if ('sc) write "Error running doxygen for database IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
     write " done",!
 
-    // Create the IRISSYS documentation (including tagfile)
-    set nsWas=$namespace
-    zn "%SYS"
-    // This metadata build has to be called directly in %SYS else a bug in the method means it doesn't find the class members
-    write "Building metadata for IRISSYS...",!
-    set sc=##class(%Atelier.v1.Utils.MetaData).Build("IRISSYS")
-    if ('sc) write "Error building metadata for IRISSYS",!,$system.Status.GetErrorText(sc),! zn nsWas return sc
-    write " done",!
-    zn nsWas
-    write "Generating files for %SYS...",!
-    set sc=..GenerateFiles("%SYS")
-    if ('sc) write "Error generating files for %SYS",!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
-    write "Building doc for %SYS...",!
-    set sc=..RunDoxygen("%SYS")
-    if ('sc) write "Error running doxygen for %SYS",!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
+    // Create the %SYS documentation (including IRISSYS tagfile)
+    set sc=..DocumentOneNamespace("%SYS")
+    if ('sc) return sc
 
     // Create our own documentation as a demo
     set sc=..DocumentOneNamespace($namespace)
@@ -44,21 +30,27 @@ ClassMethod Setup() As %Status
 }
 
 /// Do all the documentation steps for a namespace
-ClassMethod DocumentOneNamespace(namespace As %String) As %Status
+ClassMethod DocumentOneNamespace(namespace As %String, silent As %Boolean = 0) As %Status
 {
 
-    write "Building metadata for "_namespace_"...",!
-    set sc=..BuildMetadata(namespace)
-    if ('sc) write "Error building metadata for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
-    write "Generating files for "_namespace_"...",!
+    write:'silent "Building metadata for "_namespace_"...",!
+    set databaseName=..DatabaseName(namespace)
+    set nsWas=$namespace
+    zn namespace
+    // This metadata build has to be called directly from the namespace else a bug in that method means it doesn't find the class members
+    write:'silent "Building metadata for "_databaseName_"...",!
+    set sc=##class(%Atelier.v1.Utils.MetaData).Build(databaseName)
+    if ('sc) write:'silent "Error building metadata for "_databaseName,!,$system.Status.GetErrorText(sc),! zn nsWas return sc
+    write:'silent " done",!
+    zn nsWas
+    write:'silent "Generating files for "_namespace_"...",!
     set sc=..GenerateFiles(namespace)
-    if ('sc) write "Error generating files for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
-    write "Building doc for "_namespace,"...",!
+    if ('sc) write:'silent "Error generating files for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write:'silent " done",!
+    write:'silent "Building doc for "_namespace,"...",!
     set sc=..RunDoxygen(namespace)
-    if ('sc) write "Error running doxygen for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
+    if ('sc) write:'silent "Error running doxygen for "_namespace,!,$system.Status.GetErrorText(sc),! return sc
+    write:'silent " done",!
     Return sc
 }
 
@@ -101,17 +93,17 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
         for {
             if (databaseName="IRISLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/__"_databaseName) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("GENERATE_TAGFILE       = ../../../dev/atelier/"_databaseName_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/__"_databaseName) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^"_databaseName)_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK
             } elseif (databaseName="IRISSYS") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = %SYS") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/_SYS") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("GENERATE_TAGFILE       = ../../../dev/atelier/IRISSYS/doxygen/IRISSYS.tag") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("TAGFILES       = ../../../dev/atelier/IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/_SYS") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
             } else {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = webapp/"_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("TAGFILES       = ../../../dev/atelier/IRISLIB/doxygen/IRISLIB.tag=../__IRISLIB ../../../dev/atelier/IRISSYS/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/"_namespace) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
             }
             set sc=oFile.WriteLine("OPTIMIZE_OUTPUT_JAVA   = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_PRIVATE        = YES") quit:sc'=$$$OK
@@ -122,7 +114,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             set sc=oFile.WriteLine("SHOW_USED_FILES        = NO") quit:sc'=$$$OK
             set sc=oFile.WriteLine("SHOW_FILES             = NO") quit:sc'=$$$OK
             set sc=oFile.WriteLine("WARN_IF_UNDOCUMENTED   = NO") quit:sc'=$$$OK
-            set sc=oFile.WriteLine("INPUT                  = ../../../dev/atelier/"_databaseName_"/src") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("INPUT                  = "_..MetadataPath("^"_databaseName)_"/src") quit:sc'=$$$OK
             set sc=oFile.WriteLine("RECURSIVE              = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("DISABLE_INDEX          = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("GENERATE_TREEVIEW      = YES") quit:sc'=$$$OK
@@ -393,7 +385,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
                 Continue
             }
 
-            set descIndent=""
+            set commentPhase=0
             set iter2=oMethod.desc.%GetIterator()
             set sc2=$$$OK
             while iter2.%GetNext(.key,.value) && (sc2=$$$OK) {
@@ -402,17 +394,17 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
                     Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to write method desc to file "_outFile))
                     Continue
                 }
-                if descIndent="" {
+                if commentPhase=0 {
                     // Separate brief from details
                     set sc2=oFile.WriteLine("")
+                    set commentPhase=1
                 }
-                set descIndent=pyIndent_pyIndent
             }
             if (sc2'=$$$OK) {
                 Continue
             }
 
-            if descIndent="" {
+            if commentPhase=0 {
                 set sc2=oFile.WriteLine("")
                 if $$$ISERR(sc2) {
                     Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to write method EOL to file "_outFile))
@@ -463,8 +455,8 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             set linesBeforeDesc=lines
             set iter2=oProperty.desc.%GetIterator()
             if iter2.%GetNext(.key2,.value) {
-                set lines($i(lines))="## @brief "_value
-                set lines($i(lines))="##"
+                set lines($i(lines))="## "_value
+                set lines($i(lines))="## @brief" // Bizarrely we have to put this tag AFTER the first comment line rather than before
                 while iter2.%GetNext(.key2,.value) {
                     set lines($i(lines))="## "_value
                 }
@@ -474,8 +466,8 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             if lines=linesBeforeDesc {
                 // Ensure it shows up despite having no documentation.
                 // We use EXTRACT_ALL=NO in conjunction with HIDE_UNDOC_MEMBERS=YES in order to suppess our __init__ stub
-                set lines($i(lines))="## @brief &nbsp;"
-                set lines($i(lines))="##"
+                set lines($i(lines))="## &nbsp;"
+                set lines($i(lines))="## @brief"
                 set lines($i(lines))="## &nbsp;"
             }
             set lines($i(lines))="self."_name_" = "_..P2U(oProperty.type)_"()"
@@ -530,7 +522,7 @@ ClassMethod P2U(in As %String) As %String [ Private ]
     Return in
 }
 
-/// Return the database name for this class
+/// Return the database name for a namespace, or databasename if "^databasename" is passed
 ClassMethod DatabaseName(namespace As %String = {$namespace}) As %String
 {
     if $e(namespace)="^" return $e(namespace,2,*)
@@ -547,7 +539,7 @@ ClassMethod DatabaseName(namespace As %String = {$namespace}) As %String
     Return dbname
 }
 
-/// Return the path where the metadata files are stored
+/// Return the path where the metadata files are stored for namespace or "^databasename"
 ClassMethod MetadataPath(namespace As %String = {$namespace}) As %String
 {
     Set tDir=$SYSTEM.Util.DataDirectory()

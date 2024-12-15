@@ -1,12 +1,37 @@
 <head>
     <title>Doxygenerate Index</title>
+<script language="Cache" runat="server">
+    Write ..HyperEventHead(),!
+</script>
 </head>
 <body>
     <p>
-        Namespaces: (TODO - make this dynamic)
+        Namespaces:
     </p>
     <ul>
-        <li><a href="DOXYGEN/index.html">DOXYGEN namespace</a></li>
+
+<script language="Cache" runat="server">
+    Set rs=##class(%ResultSet).%New("%SYS.Namespace:List")
+
+    // Exclude remotely-mapped namespaces
+    Do rs.Execute()
+    While rs.Next() {
+        Set namespace=rs.Data("Nsp")
+        if namespace="%SYS" continue
+        if $e(##class(%SYS.Namespace).GetPackageDest(namespace))'="^" continue // Skip remotely-mapped namespaces
+        write "<li>"
+        set exists=##class(%File).Exists("doxygenerate/"_namespace_"/index.html")
+        if exists {
+            write "<a href="""_namespace_"/index.html"">"_namespace_"</a>&nbsp;"
+        }
+        write "<input type=""button"" value="""_$s(exists: "Regenerate", 1:"Generate documentation for "_namespace)_""" onclick='"
+        write ..HyperEventCall("gjsjohnmurray.doxygenerate.Utils.DocumentOneNamespace",""""_namespace_""",1",1)_";"
+        if 'exists write "alert(""Reload page to access new documentation"");"
+        write "'>"
+        write "</li>",!
+    }
+</script>
+
     </ul>
     <p>
         Libraries:

@@ -3,8 +3,8 @@
   <Document name="doxygenerate.ZPM">
     <Module>
       <Name>Doxygenerate</Name>
-      <Version>0.0.1</Version>
-      <Description>Generate Doxygen documentation for an InterSystems IRIS app</Description>
+      <Version>0.1.0</Version>
+      <Description>Generate Doxygen documentation for InterSystems IRIS apps</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="gjsjohnmurray.doxygenerate.PKG"/>
@@ -12,12 +12,12 @@
       <CSPApplication
         Url="/csp/doxygen"
         SourcePath="/src/csp"
-        DeployPath="webapp"
+        DeployPath="doxygenerate"
         Recurse="1"
         ServeFiles="1"
         CookiePath="/csp/doxygen"
         UseCookies="2"
-        UnauthenticatedEnabled="1"
+        PasswordAuthEnabled="1"
       />
       <Invoke Phase="Activate" Class="gjsjohnmurray.doxygenerate.Utils" Method="Setup" CheckStatus="true"/>
     </Module>
