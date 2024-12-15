@@ -2,7 +2,7 @@
 A package that leverages [Doxygen](https://www.doxygen.nl/) to create a set of static pages documenting the classes in a namespace.
 
 ## Description
-This package is my entry to the December 2024 Developer Community ["Bringing Ideas to Reality"](https://openexchange.intersystems.com/contest/39) contest, implementingthe idea of  [a generator that produces a static set of class reference pages ](https://ideas.intersystems.com/ideas/DPI-I-188).
+This package is my entry to the December 2024 Developer Community ["Bringing Ideas to Reality"](https://openexchange.intersystems.com/contest/39) contest, implementing the idea of [a generator that produces a static set of class reference pages ](https://ideas.intersystems.com/ideas/DPI-I-188).
 
 ## Installation
 
