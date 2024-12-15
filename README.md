@@ -31,6 +31,8 @@ Import your own IRIS classes into the USER namespace, then use the `Regenerate` 
 Alternatively, add your own namespace to the container's IRIS instance and put your classes there. Then reload the Doxygenerate launch page and generate that namespace's documentation.
 
 ### Option B: Add Doxygenerate to your own IRIS instance
+This package requires IRIS 2023.1 or later.
+
 1. Make sure you have Doxygen installed on your IRIS host.
     - A Windows installer is available [here](https://www.doxygen.nl/download.html).
     - Linux platforms can typically install it using their package manager. The `graphviz` package is also recommended in order to get diagrams in the generated documentation. For example:
@@ -39,7 +41,7 @@ Alternatively, add your own namespace to the container's IRIS instance and put y
         ```
 2. Use [IPM / ZPM](https://github.com/intersystems/ipm) to install the Doxygenerate package. It only needs to be installed in one namespace, from where it can generate documentation for any namespace. Choose an interop-enabled namespace if you want to document any interop applications. We suggest picking the USER namespace:
     ```
-    USER>zpm "install Doxygenerate"
+    USER>zpm "install doxygenerate"
     ```
 3. Point your web browser at the `/csp/doxygen/Home.csp` launch page of whichever web server that hosts your IRIS Portal.
 
