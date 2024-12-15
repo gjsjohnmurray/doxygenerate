@@ -1,3 +1,287 @@
+# Recipes
+## Build and publish test package
+```
+PS C:\Users\JohnM\Documents\GitHub\gjsjohnmurray\doxygenerate> docker-compose down   
+[+] Running 2/2
+ ✔ Container doxygenerate-iris-1  Removed                                                                                                                                                                    16.4s 
+ ✔ Network doxygenerate_default   Removed                                                                                                                                                                     0.3s 
+PS C:\Users\JohnM\Documents\GitHub\gjsjohnmurray\doxygenerate> docker-compose build --progress=plain
+--progress is a global compose flag, better use `docker compose --progress xx build ...
+#0 building with "desktop-linux" instance using docker driver
+...
+#8 340.8 %SYS>
+#8 DONE 350.0s
+
+#9 [iris] exporting to image
+#9 exporting layers
+#9 exporting layers 29.8s done
+#9 writing image sha256:ea981302bb8372094030c5c21703606ffb14c3116b542095cfe66157ed31add0 done
+#9 naming to docker.io/library/doxygenerate-iris 0.0s done
+#9 DONE 29.9s
+
+#10 [iris] resolving provenance for metadata file
+#10 DONE 0.1s
+PS C:\Users\JohnM\Documents\GitHub\gjsjohnmurray\doxygenerate> docker-compose up -d
+[+] Running 2/2
+ ✔ Network doxygenerate_default   Created                                                                                                                                                                     0.2s 
+ ✔ Container doxygenerate-iris-1  Started                                                                                                                                                                     1.6s 
+PS C:\Users\JohnM\Documents\GitHub\gjsjohnmurray\doxygenerate> docker-compose exec iris iris session iris -U USER   
+
+Node: 2d74b6857401, Instance: IRIS
+
+USER>zpm
+
+=============================================================================
+|| Welcome to the Package Manager Shell (ZPM).                             ||
+|| Enter q/quit to exit the shell. Enter ?/help to view available commands ||
+=============================================================================
+zpm:USER>load /home/irisowner/dev
+
+[USER|doxygenerate]     Reload START (/home/irisowner/dev/)
+[USER|doxygenerate]     Reload SUCCESS
+[doxygenerate]  Module object refreshed.
+[USER|doxygenerate]     Validate START
+[USER|doxygenerate]     Validate SUCCESS
+[USER|doxygenerate]     Compile START
+[USER|doxygenerate]     Compile SUCCESS
+[USER|doxygenerate]     Activate START
+[USER|doxygenerate]     Configure START
+[USER|doxygenerate]     Configure SUCCESS
+Starting setup...
+Building metadata for IRISLIB...
+ done
+Generating files for database IRISLIB...
+ done
+Building doc for database IRISLIB...
+ done
+Building metadata for IRISLIB...
+ done
+Generating files for database ENSLIB...
+ done
+Building doc for database ENSLIB...
+ done
+Building metadata for %SYS...
+Building metadata for IRISSYS...
+ done
+Generating files for %SYS...
+ done
+Building doc for %SYS...
+ done
+Building metadata for USER...
+Building metadata for USER...
+ done
+Generating files for USER...
+ done
+Building doc for USER...
+ done
+
+[USER|doxygenerate]     Activate SUCCESS
+zpm:USER>
+
+zpm:USER>doxygenerate package    
+
+[USER|doxygenerate]     Reload START (/home/irisowner/dev/)
+[USER|doxygenerate]     Reload SUCCESS
+[doxygenerate]  Module object refreshed.
+[USER|doxygenerate]     Validate START
+[USER|doxygenerate]     Validate SUCCESS
+[USER|doxygenerate]     Compile START
+[USER|doxygenerate]     Compile SUCCESS
+[USER|doxygenerate]     Activate START
+[USER|doxygenerate]     Configure START
+[USER|doxygenerate]     Configure SUCCESS
+Starting setup...
+Building metadata for IRISLIB...
+ done
+Generating files for database IRISLIB...
+ done
+Building doc for database IRISLIB...
+ done
+Building metadata for IRISLIB...
+ done
+Generating files for database ENSLIB...
+ done
+Building doc for database ENSLIB...
+ done
+Building metadata for %SYS...
+Building metadata for IRISSYS...
+ done
+Generating files for %SYS...
+ done
+Building doc for %SYS...
+ done
+Building metadata for USER...
+Building metadata for USER...
+ done
+Generating files for USER...
+ done
+Building doc for USER...
+ done
+
+[USER|doxygenerate]     Activate SUCCESS
+[USER|doxygenerate]     Package START
+[USER|doxygenerate]     Package SUCCESS
+zpm:USER>
+
+zpm:USER>repo -n registry -r -url https://test.pm.community.intersystems.com/registry/ -user test -pass PassWord42
+
+registry
+        Source:                 https://test.pm.community.intersystems.com/registry/
+        Enabled?                Yes
+        Available?              Yes
+        Use for Snapshots?      Yes
+        Use for Prereleases?    Yes
+        Is Read-Only?           No
+        Deployment Enabled?     No
+        Username:               test
+        Password:               <set>
+zpm:USER>
+
+zpm:USER>doxygenerate publish
+
+[USER|doxygenerate]     Reload START (/home/irisowner/dev/)
+[USER|doxygenerate]     Reload SUCCESS
+[doxygenerate]  Module object refreshed.
+[USER|doxygenerate]     Validate START
+[USER|doxygenerate]     Validate SUCCESS
+[USER|doxygenerate]     Compile START
+[USER|doxygenerate]     Compile SUCCESS
+[USER|doxygenerate]     Activate START
+[USER|doxygenerate]     Configure START
+[USER|doxygenerate]     Configure SUCCESS
+Starting setup...
+Building metadata for IRISLIB...
+ done
+Generating files for database IRISLIB...
+ done
+Building doc for database IRISLIB...
+ done
+Building metadata for IRISLIB...
+ done
+Generating files for database ENSLIB...
+ done
+Building doc for database ENSLIB...
+ done
+Building metadata for %SYS...
+Building metadata for IRISSYS...
+ done
+Generating files for %SYS...
+ done
+Building doc for %SYS...
+ done
+Building metadata for USER...
+Building metadata for USER...
+ done
+Generating files for USER...
+ done
+Building doc for USER...
+ done
+
+[USER|doxygenerate]     Activate SUCCESS
+[USER|doxygenerate]     Package START
+[USER|doxygenerate]     Package SUCCESS
+[USER|doxygenerate]     Register START
+[USER|doxygenerate]     Register SUCCESS
+[USER|doxygenerate]     Publish START
+[USER|doxygenerate]     Publish SUCCESS
+zpm:USER>
+zpm:USER>doxygenerate publish
+
+[USER|doxygenerate]     Reload START (/home/irisowner/dev/)
+[USER|doxygenerate]     Reload SUCCESS
+[doxygenerate]  Module object refreshed.
+[USER|doxygenerate]     Validate START
+[USER|doxygenerate]     Validate SUCCESS
+[USER|doxygenerate]     Compile START
+[USER|doxygenerate]     Compile SUCCESS
+[USER|doxygenerate]     Activate START
+[USER|doxygenerate]     Configure START
+[USER|doxygenerate]     Configure SUCCESS
+Starting setup...
+Building metadata for IRISLIB...
+ done
+Generating files for database IRISLIB...
+ done
+Building doc for database IRISLIB...
+ done
+Building metadata for IRISLIB...
+ done
+Generating files for database ENSLIB...
+ done
+Building doc for database ENSLIB...
+ done
+Building metadata for %SYS...
+Building metadata for IRISSYS...
+ done
+Generating files for %SYS...
+ done
+Building doc for %SYS...
+ done
+Building metadata for USER...
+Building metadata for USER...
+ done
+Generating files for USER...
+ done
+Building doc for USER...
+ done
+
+[USER|doxygenerate]     Activate SUCCESS
+[USER|doxygenerate]     Package START
+[USER|doxygenerate]     Package SUCCESS
+[USER|doxygenerate]     Register START
+[USER|doxygenerate]     Register SUCCESS
+[USER|doxygenerate]     Publish START
+[USER|doxygenerate]     Publish SUCCESS
+zpm:USER>
+
+zpm:USER>search
+registry https://test.pm.community.intersystems.com/registry/:
+doxygenerate 0.1.1
+zpm:USER>
+```
+
+## Load test package into another IRIS instance
+```
+USER>zpm
+
+=============================================================================
+|| Welcome to the Package Manager Shell (ZPM). version 0.7.4               ||
+|| Enter q/quit to exit the shell. Enter ?/help to view available commands ||
+|| Current registry https://pm.community.intersystems.com                  ||
+=============================================================================
+zpm:USER>repo -n registry -r -url https://test.pm.community.intersystems.com/registry/ -user test -pass PassWord42
+
+registry
+        Source:                 https://test.pm.community.intersystems.com/registry/
+        Enabled?                Yes
+        Available?              Yes
+        Use for Snapshots?      Yes
+        Use for Prereleases?    Yes
+        Is Read-Only?           No
+        Deployment Enabled?     No
+        Username:               test
+        Password:               <set>
+zpm:USER>
+
+zpm:USER>search
+registry https://test.pm.community.intersystems.com/registry/:
+doxygenerate 0.1.1
+zpm:USER>install doxygenerate
+...
+zpm:USER>repo -reset-defaults
+
+registry
+        Source:                 https://pm.community.intersystems.com
+        Enabled?                Yes
+        Available?              Yes
+        Use for Snapshots?      Yes
+        Use for Prereleases?    Yes
+        Is Read-Only?           No
+        Deployment Enabled?     No
+zpm:USER>
+```
+
+
 # useful commands
 ## clean up docker
 use it when docker says "There is no space left on device". It will remove built but not used images and other temporary files.
@@ -24,7 +308,7 @@ docker exec iris iris session iris -U IRISAPP
 ```
 
 
-## import objectscirpt code
+## import objectscript code
 
 do $System.OBJ.LoadDir("/home/irisowner/dev/src","ck",,1)
 ## map iris key from Mac home directory to IRIS in container
