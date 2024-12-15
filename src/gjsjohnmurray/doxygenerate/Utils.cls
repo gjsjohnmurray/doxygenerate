@@ -6,19 +6,21 @@ ClassMethod Setup() As %Status
 {
     write !,"Starting setup...",!
 
-    // Create the IRISLIB documentation (including tagfile)
-    write "Building metadata for IRISLIB...",!
-    set sc=..BuildMetadata("^IRISLIB")
-    if ('sc) write "Error building metadata for IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
-    write "Generating files for database IRISLIB...",!
-    set sc=..GenerateFiles("^IRISLIB")
-    if ('sc) write "Error generating files for database IRISLIB",$system.Status.GetErrorText(sc),! return sc
-    write " done",!
-    write "Building doc for database IRISLIB...",!
-    set sc=..RunDoxygen("^IRISLIB")
-    if ('sc) write "Error running doxygen for database IRISLIB",!,$system.Status.GetErrorText(sc),! return sc
-    write " done",!
+    // Create the library documentation (including tagfiles)
+    for lib="IRISLIB","ENSLIB" {
+        write "Building metadata for IRISLIB...",!
+        set sc=..BuildMetadata("^"_lib)
+        if ('sc) write "Error building metadata for "_lib,!,$system.Status.GetErrorText(sc),! return sc
+        write " done",!
+        write "Generating files for database "_lib_"...",!
+        set sc=..GenerateFiles("^"_lib)
+        if ('sc) write "Error generating files for database "_lib,$system.Status.GetErrorText(sc),! return sc
+        write " done",!
+        write "Building doc for database "_lib_"...",!
+        set sc=..RunDoxygen("^"_lib)
+        if ('sc) write "Error running doxygen for database "_lib,!,$system.Status.GetErrorText(sc),! return sc
+        write " done",!
+    }
 
     // Create the %SYS documentation (including IRISSYS tagfile)
     set sc=..DocumentOneNamespace("%SYS")
@@ -91,7 +93,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             quit $$$ERROR($$$GeneralError,"Failed To open file: "_doxyFile)
         }
         for {
-            if (databaseName="IRISLIB") {
+            if (databaseName="IRISLIB") ! (databaseName="ENSLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/__"_databaseName) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^"_databaseName)_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK

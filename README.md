@@ -2,46 +2,66 @@
 A package that leverages [Doxygen](https://www.doxygen.nl/) to create a set of static pages documenting the classes in a namespace.
 
 ## Description
-TODO
+This package is my entry to the December 2024 Developer Community ["Bringing Ideas to Reality"](https://openexchange.intersystems.com/contest/39) contest, implementingthe idea of  [a generator that produces a static set of class reference pages ](https://ideas.intersystems.com/ideas/DPI-I-188).
 
 ## Installation
 
-### Option A: Add Doxygenerate to your own IRIS instance
+### Option A: Clone repository locally and launch its IRIS Community Edition container
+
+For convenience this option uses VS Code, but it is also possible to use similar steps independent of VS Code.
+
+1. Make sure you have VS Code, git and Docker Desktop installed locally.
+2. Launch VS Code, then close any existing open workspace / folder / files.
+3. Clone the `https://github.com/gjsjohnmurray/doxygenerate.git` repository locally (e.g. by running `Git: Clone` from Command Palette, or by clicking the equivalent Welcome page link).
+4. Open the folder this created, and if prompted confirm that you trust its contents.
+5. If prompted, install recommended extensions.
+6. If a notification suggests reopening the folder in a container, ignore this and continue working locally.
+7. In Explorer view, use the context menu of the `docker-compose.yml` file to run `Compose Up`.
+8. Wait for the container to start. This is likely to take several minutes. The `Building doc...` steps take a while, particularly for the IRISLIB and ENSLIB databases.
+9. Click on the `ObjectScript` panel of the VS Code status bar. From the top-center menu choose `Refresh Connection`. The status bar panel's label will change to `docker:iris:NNNNN[USER]`.
+10. Click that panel again and choose `Browse Generated Documentation`.
+11. Click the `USER` link on the launch page.
+
+You can now browse the Doxygen documentation for Doxygenerate's own ObjectScript packages.
+
+Other links from the `/csp/doxygen/Home.csp` launch page let you explore the extensive IRIS library packages.
+
+Import your own IRIS classes into the USER namespace, then use the `Regenerate` button to update the static documentation.
+
+Alternatively, add your own namespace to the container's IRIS instance and put your classes there. Then reload the Doxygenerate launch page and generate that namespace's documentation.
+
+### Option B: Add Doxygenerate to your own IRIS instance
 1. Make sure you have Doxygen installed on your IRIS host.
     - A Windows installer is available [here](https://www.doxygen.nl/download.html).
     - Linux platforms can typically install it using their package manager. The `graphviz` package is also recommended in order to get diagrams in the generated documentation. For example:
         ```
         $ apt-get install doxygen graphviz
         ```
-2. Use IPM / ZPM to install the Doxygenerate package. This can be done from any namespace as it will add a DOXYGEN namespace to your IRIS environment:
+2. Use [IPM / ZPM](https://github.com/intersystems/ipm) to install the Doxygenerate package. It only needs to be installed in one namespace, from where it can generate documentation for any namespace. Choose an interop-enabled namespace if you want to document any interop applications. We suggest picking the USER namespace:
     ```
     USER>zpm "install Doxygenerate"
     ```
+3. Point your web browser at the `/csp/doxygen/Home.csp` launch page of whichever web server that hosts your IRIS Portal.
 
-### Option B: Clone repository locally and launch its IRIS Community Edition Docker container
-1. Make sure you have Docker Desktop and git installed locally.
+You can now browse the Doxygen documentation for the namespace you installed Doxygenerate into, including its own ObjectScript packages. You can also generate documentation for other namespaces in your IRIS environment.
 
-2. Clone the repository locally.
-    ```
-    git clone https://github.com/gjsjohnmurray/doxygenerate.git
-    ```
+## Use
+Links from the launch page let you:
+- explore the extensive IRIS library packages;
+- generate documentation for other namespaces;
+- regenerate documentation after updating classes in a namespace.
 
-3. Switch into the folder this created, then build and launch the container
-    ```
-    cd doxygenerate
-    docker-compose build
-    ...
-    docker-compose up -d
-    ```
-*Note: Linux users may need to use "docker compose" instead of "docker-compose"*
+Remember that (re)generation can take a while, particularly for a namespace whose code database contains a lot of classes.
 
-TODO
-
-## Usage
-
-Point your web browser at the `/csp/doxygen/Home.csp` page of the web server that hosts your IRIS instance's web applications (including the IRIS Portal).
+We host the generated documentation in an IRIS webapp merely as a convenience. The files Doxygen created for us are static and can be found in subfolders of the folder that the Physical Path property of the `/csp/doxygen` IRIS web application points to. In each subfolder the home page is `index.html`.
+- For ordinary namespaces the subfolder name matches the namespace name (e.g. USER).
+- For %SYS the subfolder is `_SYS`
+- For the IRISLIB and ENSLIB library databases, which don't have their own namespaces, the subfolders are `__IRISLIB` and `__ENSLIB` respectively.
 
 ## How does it work?
+1. The `Build` method of IRIS's `%Atelier.v1.Utils.MetaData` class is used to create files that each contain a JSON representation of a class's structure (not including implementation code or storage details).
+2. Our package ingests these JSON files and emits Python [simulacrum](https://en.wikipedia.org/wiki/Simulacrum) files whose structure mimics the IRIS classes sufficiently well to meet Doxygen's expectations for Python code documentation.
+3. Doxygen gets to work and eventually emits a set of static files headed by `index.html`.
 
 ## Repository structure
 
@@ -75,20 +95,19 @@ Extension recommendations for this workspace.
 Contains source files.
 
 ### tests folder
-Contains unit tests for the ObjectScript classes
+Contains unit tests for the ObjectScript classes.
 
 ### dev.md
 
-Contains a set of useful commands that will help during the development
+Contains a set of useful commands that may help during development.
 
 ### docker-compose.yml
 
-A docker engine helper file to manage images building and rule ports mapping an the host to container folders(volumes) mapping
+A docker engine helper file to manage image building, host-to-container mapping rules for ports and folders (volumes), etc.
 
 ### Dockerfile
 
-The simplest dockerfile which starts IRIS and imports code from /src folder into it.
-Use the related docker-compose.yml to easily setup additional parameters like port number and where you map keys and host folders.
+The dockerfile which starts an IRIS container and loads the package into it. You can use the related docker-compose.yml to adjust parameters, for example to bind to fixed local port numbers.
 
 ### iris.script
 
@@ -96,15 +115,4 @@ Contains objectscript commands that are fed to IRIS during the image building
 
 ### module.xml
 
-IPM Module's description of the code in the repository.
-It describes what is loaded with the method, how it is being tested and what apps neeed to be created, what files need to be copied.
-
-
-## Troubleshooting
-
-If you have issues with docker image building here are some recipes that could help.
-
-1. You are out of free space in docker. You can expand the amount of space or clean up maually via docker desktop. Or you can call the following line to clean up:
-```
-docker system prune -f
-```
+IPM module specification.
