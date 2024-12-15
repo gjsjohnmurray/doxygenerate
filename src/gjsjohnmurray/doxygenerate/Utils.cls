@@ -413,9 +413,9 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
                     Continue
                 }
             }
-            set sc2=oFile.WriteLine(pyIndent_pyIndent_"&nbsp;")
+            set sc2=oFile.WriteLine(" ")
             if $$$ISERR(sc2) {
-                Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to write method docstring trailing nbsp to file "_outFile))
+                Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to write method docstring trailing blank line to file "_outFile))
                 Continue
             }
             set sc2=oFile.WriteLine(pyIndent_pyIndent_"'''")
