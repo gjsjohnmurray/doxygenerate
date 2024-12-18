@@ -35,7 +35,6 @@ ClassMethod Setup() As %Status
 ClassMethod DocumentOneNamespace(namespace As %String, silent As %Boolean = 0) As %Status
 {
 
-    write:'silent "Building metadata for "_namespace_"...",!
     set databaseName=..DatabaseName(namespace)
     set nsWas=$namespace
     zn namespace
