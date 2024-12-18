@@ -88,7 +88,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
         if oFile="" {
             quit $$$ERROR($$$GeneralError,"Failed To create file: "_doxyFile)
         }
-        set sc=oFile.Open("WNS")
+        set sc=oFile.Open("K\UTF8\WNS")
         if $$$ISERR(sc) {
             quit $$$ERROR($$$GeneralError,"Failed To open file: "_doxyFile)
         }
@@ -193,7 +193,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
                             Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to create __init__.py file for "_outFile))
                             Continue
                         }
-                        set sc2=oFile.Open("WNS")
+                        set sc2=oFile.Open("K\UTF8\WNS")
                         if $$$ISERR(sc2) {
                             Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to open "_filename))
                             Continue
@@ -217,7 +217,7 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
                 Continue
             }
             set isNewModule='##class(%File).Exists(outFile)
-            set sc2=oFile.Open("WS"_$s(isNewModule:"N",1:"A"))
+            set sc2=oFile.Open("K\UTF8\WS"_$s(isNewModule:"N",1:"A"))
             if $$$ISERR(sc2) {
                 Set sc=$system.Status.AppendStatus(sc, $system.Status.Error(5001,"Failed to open "_outFile))
                 Continue
