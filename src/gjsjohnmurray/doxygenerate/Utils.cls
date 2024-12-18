@@ -140,6 +140,9 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             set sc=oFile.WriteLine("DISABLE_INDEX          = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("GENERATE_TREEVIEW      = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("GENERATE_LATEX         = NO") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("UML_LOOK               = YES") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("UML_LIMIT_NUM_FIELDS   = 0") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("COLLABORATION_GRAPH    = NO") quit:sc'=$$$OK
             quit
         }
         d oFile.Close()
