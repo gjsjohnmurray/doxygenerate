@@ -84,6 +84,25 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
     }
     set doxyFile=doxyDir_"/Doxyfile"
     if '##class(%File).Exists(doxyFile) {
+
+        // Try to use an absolute output path in Doxyfile.
+        // Fall back to a relative one if we don't have permission to switch to %SYS and discover it.
+        set appPath="doxygenerate/"
+        set nsWas=$namespace
+        Try {
+            set $namespace="%SYS"
+            set cspApp=##class(Security.Applications).%OpenId("/csp/doxygen")
+            if cspApp'="" {
+                set appPath=cspApp.Path
+            }
+            kill cspApp            
+        }
+        Catch ex {
+            // Do nothing
+        }
+        set $namespace=nsWas
+
+        // Write Doxyfile
         set oFile=##class(%File).%New(doxyFile)
         if oFile="" {
             quit $$$ERROR($$$GeneralError,"Failed To create file: "_doxyFile)
@@ -95,16 +114,16 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
         for {
             if (databaseName="IRISLIB") ! (databaseName="ENSLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/__"_databaseName) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_"__"_databaseName) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^"_databaseName)_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK
             } elseif (databaseName="IRISSYS") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = %SYS") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/_SYS") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_"_SYS") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
             } else {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = doxygenerate/"_namespace) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_namespace) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
             }
             set sc=oFile.WriteLine("OPTIMIZE_OUTPUT_JAVA   = YES") quit:sc'=$$$OK
