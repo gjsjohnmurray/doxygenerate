@@ -13,10 +13,12 @@ ENV IRISPASSWORD="SYS"
 ENV IRISNAMESPACE=$NAMESPACE
 ENV PATH="/usr/irissys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/irisowner/bin"
 
-## install doxygen and graphviz
+## install doxygen and graphviz for core functionality
+## install texlive-latex-base and texlive-latex-extra for pdf generation
 USER root
 RUN apt update > /dev/null && \
     apt-get -y install doxygen graphviz > /dev/null
+RUN apt-get -y install texlive-latex-base texlive-latex-extra > /dev/null
 USER ${ISC_PACKAGE_MGRUSER}
 
 RUN --mount=type=bind,src=.,dst=. \
