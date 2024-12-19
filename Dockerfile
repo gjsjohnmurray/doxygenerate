@@ -7,11 +7,13 @@ WORKDIR /home/irisowner/dev
 ARG TESTS=0
 ARG MODULE="doxygenerate"
 ARG NAMESPACE="USER"
+ARG DEBIAN_FRONTEND=noninteractive
 
 ENV IRISUSERNAME="_SYSTEM"
 ENV IRISPASSWORD="SYS"
 ENV IRISNAMESPACE=$NAMESPACE
 ENV PATH="/usr/irissys/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/irisowner/bin"
+ENV TZ=Etc/UTC
 
 ## install doxygen and graphviz for core functionality
 ## install texlive-latex-base and texlive-latex-extra for pdf generation
