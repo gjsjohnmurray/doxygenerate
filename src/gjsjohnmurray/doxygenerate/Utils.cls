@@ -113,18 +113,19 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
         for {
             if (databaseName="IRISLIB") ! (databaseName="ENSLIB") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_databaseName_" database") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_"__"_databaseName) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("OUTPUT_DIRECTORY       = "_appPath_"__"_databaseName) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^"_databaseName)_"/doxygen/"_databaseName_".tag") quit:sc'=$$$OK
             } elseif (databaseName="IRISSYS") {
                 set sc=oFile.WriteLine("PROJECT_NAME           = %SYS") quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_"_SYS") quit:sc'=$$$OK
+                set sc=oFile.WriteLine("OUTPUT_DIRECTORY       = "_appPath_"_SYS") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("GENERATE_TAGFILE       = "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag") quit:sc'=$$$OK
                 set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB") quit:sc'=$$$OK
             } else {
                 set sc=oFile.WriteLine("PROJECT_NAME           = "_namespace) quit:sc'=$$$OK
-                set sc=oFile.WriteLine("HTML_OUTPUT            = "_appPath_namespace) quit:sc'=$$$OK
+                set sc=oFile.WriteLine("OUTPUT_DIRECTORY       = "_appPath_namespace) quit:sc'=$$$OK
                 set sc=oFile.WriteLine("TAGFILES       = "_..MetadataPath("^IRISLIB")_"/doxygen/IRISLIB.tag=../__IRISLIB "_..MetadataPath("^IRISSYS")_"/doxygen/IRISSYS.tag=../_SYS") quit:sc'=$$$OK
             }
+            set sc=oFile.WriteLine("HTML_OUTPUT            = .") quit:sc'=$$$OK
             set sc=oFile.WriteLine("OPTIMIZE_OUTPUT_JAVA   = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_PRIVATE        = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("EXTRACT_STATIC         = YES") quit:sc'=$$$OK
@@ -142,6 +143,52 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
             set sc=oFile.WriteLine("UML_LOOK               = YES") quit:sc'=$$$OK
             set sc=oFile.WriteLine("UML_LIMIT_NUM_FIELDS   = 0") quit:sc'=$$$OK
             set sc=oFile.WriteLine("COLLABORATION_GRAPH    = NO") quit:sc'=$$$OK
+            quit
+        }
+        d oFile.Close()
+        if $$$ISERR(sc) {
+            quit $$$ERROR($$$GeneralError,"Failed To write to file: "_doxyFile)
+        }
+
+        // Write Doxyfile_pdf
+        set includeFile=doxyFile
+        set doxyFile=doxyDir_"/Doxyfile_pdf"
+        set oFile=##class(%File).%New(doxyFile)
+        if oFile="" {
+            quit $$$ERROR($$$GeneralError,"Failed To create file: "_doxyFile)
+        }
+        set sc=oFile.Open("K\UTF8\WNS")
+        if $$$ISERR(sc) {
+            quit $$$ERROR($$$GeneralError,"Failed To open file: "_doxyFile)
+        }
+        for {
+            set sc=oFile.WriteLine("@INCLUDE               = """_includeFile_"""") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("GENERATE_LATEX         = YES") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("GENERATE_HTML          = NO") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("UML_LOOK               = YES") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("UML_LIMIT_NUM_FIELDS   = 0") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("COLLABORATION_GRAPH    = NO") quit:sc'=$$$OK
+            quit
+        }
+        d oFile.Close()
+        if $$$ISERR(sc) {
+            quit $$$ERROR($$$GeneralError,"Failed To write to file: "_doxyFile)
+        }
+
+        // Write Doxyfile_pdf_brief
+        set includeFile=doxyFile
+        set doxyFile=doxyDir_"/Doxyfile_pdf_brief"
+        set oFile=##class(%File).%New(doxyFile)
+        if oFile="" {
+            quit $$$ERROR($$$GeneralError,"Failed To create file: "_doxyFile)
+        }
+        set sc=oFile.Open("K\UTF8\WNS")
+        if $$$ISERR(sc) {
+            quit $$$ERROR($$$GeneralError,"Failed To open file: "_doxyFile)
+        }
+        for {
+            set sc=oFile.WriteLine("@INCLUDE               = """_includeFile_"""") quit:sc'=$$$OK
+            set sc=oFile.WriteLine("TAGFILES               =") quit:sc'=$$$OK
             quit
         }
         d oFile.Close()
@@ -519,8 +566,33 @@ ClassMethod GenerateFiles(namespace As %String = {$namespace}) As %Status
     Return sc
 }
 
-/// Invoke doxygen to generate the documentation
+/// Invoke doxygen one or more times to generate the HTML and (sometimes) PDF documentation
 ClassMethod RunDoxygen(namespace As %String = {$namespace}) As %Status
+{
+    Set sc = ..OneDoxyfile(namespace)
+    if sc'=$$$OK {
+        Return sc
+    }
+
+    // Create PDFs, but not for system databases
+    Set databaseName=..DatabaseName(namespace)
+    if (databaseName'="IRISLIB") && (databaseName'="ENSLIB") && (databaseName'="IRISSYS") {
+        For doxyFile="Doxyfile_pdf","Doxyfile_pdf_brief" {
+            Set sc=..OnePDF(namespace,doxyFile)
+            if sc'=$$$OK {
+                Return sc
+            }
+            Set sc=..OnePDF(namespace,doxyFile)
+            if sc'=$$$OK {
+                Return sc
+            }
+        }
+    }
+    Return sc
+}
+
+/// Process a 
+ClassMethod OneDoxyfile(namespace As %String = {$namespace}, doxyFile As %String = "Doxyfile") As %Status [ Private ]
 {
     Set sc = $$$OK
     Set databaseName=..DatabaseName(namespace)
@@ -528,10 +600,42 @@ ClassMethod RunDoxygen(namespace As %String = {$namespace}) As %Status
     Set doxyDir=##class(%File).SubDirectoryName(inDir,"doxygen")
     Set nullDevice=##class(%Library.Device).GetNullDevice()
 
-    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","doxygen",doxyDir_"/Doxyfile")
+    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","doxygen",doxyDir_"/"_doxyFile)
 
     if (status'=0) {
-        Set sc=$system.Status.Error(5001,"Failed to run doxygen on "_doxyDir_"/Doxyfile - $zf(-100) returned "_status)
+        Set sc=$system.Status.Error(5001,"Failed to run doxygen on "_doxyDir_"/"_doxyFile_" - $zf(-100) returned "_status)
+    }
+    Return sc
+}
+
+/// Process a 
+ClassMethod OnePDF(namespace As %String = {$namespace}, doxyFile As %String = "Doxyfile_pdf") As %Status [ Private ]
+{
+    Set sc = ..OneDoxyfile(namespace,doxyFile)
+    If sc'=$$$OK {
+        Return sc
+    }
+
+    Set databaseName=..DatabaseName(namespace)
+    Set inDir=..MetadataPath(namespace)
+    Set publishedDir=##class(%File).SubDirectoryName(..AppPath(),namespace)
+    Set latexDir=##class(%File).SubDirectoryName(publishedDir,"latex")
+    Set nullDevice=##class(%Library.Device).GetNullDevice()
+
+    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","make","--directory="_latexDir)
+    if (status'=0) {
+        Return $system.Status.Error(5001,"Failed to run make for "_latexDir_" - $zf(-100) returned "_status)
+    }
+    Set pdfFileSuffix=$p(doxyFile,"_",3)
+    If pdfFileSuffix'="" Set pdfFileSuffix="_"_pdfFileSuffix
+    Set pdfFile=publishedDir_"/refman"_pdfFileSuffix_".pdf"
+    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","mv",latexDir_"/refman.pdf",pdfFile)
+    if (status'=0) {
+        Return $system.Status.Error(5001,"Failed to move PDF to "_pdfFile_" - $zf(-100) returned "_status)
+    }
+    Set status=$zf(-100,"/SHELL /STDOUT="""_nullDevice_""" /STDERR="""_nullDevice_"""","rm","-Rf",latexDir)
+    if (status'=0) {
+        Return $system.Status.Error(5001,"Failed to remove "_latexDir_" - $zf(-100) returned "_status)
     }
 
     Return sc
@@ -543,6 +647,24 @@ ClassMethod P2U(in As %String) As %String [ Private ]
     //if $e(in)="%" Return "_"_$e(in,2,*)
     if $e(in)="%" Return "_."_$e(in,2,*)
     Return in
+}
+
+ClassMethod AppPath() As %String
+{
+    set appPath="doxygenerate/"
+    new $namespace
+    Try {
+        set $namespace="%SYS"
+        set cspApp=##class(Security.Applications).%OpenId("/csp/doxygen")
+        if cspApp'="" {
+            set appPath=cspApp.Path
+        }
+        kill cspApp            
+    }
+    Catch ex {
+        // Do nothing
+    }
+    return appPath
 }
 
 /// Return the database name for a namespace, or databasename if "^databasename" is passed

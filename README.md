@@ -39,11 +39,15 @@ This package requires IRIS 2023.1 or later.
         ```
         $ apt-get install doxygen graphviz
         ```
+    Two additional packages are required for PDF generation:
+        ```
+        $ apt-get install texlive-latex-base texlive-latex-extra
+        ```
 2. Use [IPM / ZPM](https://github.com/intersystems/ipm) to install the Doxygenerate package. It only needs to be installed in one namespace, from where it can generate documentation for any namespace. Choose an interop-enabled namespace if you want to document any interop applications. We suggest picking the USER namespace:
     ```
     USER>zpm "install doxygenerate"
     ```
-3. Point your web browser at the `/csp/doxygen/Home.csp` launch page of whichever web server that hosts your IRIS Portal.
+3. Point your web browser at the `/csp/doxygen/Home.csp` launch page of the web server hosting your IRIS Portal.
 
 You can now browse the Doxygen documentation for the namespace you installed Doxygenerate into, including its own ObjectScript packages. You can also generate documentation for other namespaces in your IRIS environment.
 
