@@ -582,10 +582,6 @@ ClassMethod RunDoxygen(namespace As %String = {$namespace}) As %Status
             if sc'=$$$OK {
                 Return sc
             }
-            Set sc=..OnePDF(namespace,doxyFile)
-            if sc'=$$$OK {
-                Return sc
-            }
         }
     }
     Return sc
